@@ -1,0 +1,150 @@
+ASSIGNMENT 4
+Unnamed PL/SQL code block: Use of Control structure and Exception handling is mandatory.
+Write a PL/SQL block of code for the following requirements:-
+Schema:
+1. Borrower(Roll_no, Name, DateofIssue, NameofBook, Status)
+2. Fine(Roll_no,Date,Amt)
+-- Accept roll_no & name of book from user.
+-- Check the number of days (from date of issue), if days are between 15 to 30 then fine
+amount will be Rs 5per day.
+-- If no. of days>30, per day fine will be Rs 50 per day & for days less than 30, Rs. 5 per
+day.
+-- After submitting the book, status will change from I to R.
+-- If condition of fine is true, then details will be stored into fine table.
+Frame the problem statement for writing PL/SQL block inline with above statement.
+
+MariaDB [P]> create table borrower (rollno int, name char (10), dateofissue date, nameofbook char(10), 		status char(10));
+Query OK, 0 rows affected (0.04 sec)
+
+MariaDB [P]> create table fine (rollno int, date date, amt int);
+Query OK, 0 rows affected (0.04 sec)
+
+MariaDB [P]> desc borrower;
++-------------+----------+------+-----+---------+-------+
+| Field       | Type     | Null | Key | Default | Extra |
++-------------+----------+------+-----+---------+-------+
+| rollno      | int(11)  | YES  |     | NULL    |       |
+| name        | char(10) | YES  |     | NULL    |       |
+| dateofissue | date     | YES  |     | NULL    |       |
+| nameofbook  | char(10) | YES  |     | NULL    |       |
+| status      | char(10) | YES  |     | NULL    |       |
++-------------+----------+------+-----+---------+-------+
+5 rows in set (0.02 sec)
+
+MariaDB [P]> desc fine;
++--------+---------+------+-----+---------+-------+
+| Field  | Type    | Null | Key | Default | Extra |
++--------+---------+------+-----+---------+-------+
+| rollno | int(11) | YES  |     | NULL    |       |
+| date   | date    | YES  |     | NULL    |       |
+| amt    | int(11) | YES  |     | NULL    |       |
++--------+---------+------+-----+---------+-------+
+3 rows in set (0.00 sec)
+
+
+MariaDB [P]> select * from borrower;
++--------+------+-------------+------------+--------+
+| rollno | name | dateofissue | nameofbook | status |
++--------+------+-------------+------------+--------+
+|    101 | abc  | 2017-07-16  | dbmss       | i      |
+|    102 | abc1 | 2017-07-16  | cn         | i      |
+|    103 | abc3 | 2017-07-18  | toc        | i      |
+|    104 | abc4 | 2017-07-20  | ds         | i      |
+|    105 | abc5 | 2017-07-23  | daa        | i      |
++--------+------+-------------+------------+--------+
+
+
+MariaDB [P]> select curdate();
++------------+
+| curdate()  |
++------------+
+| 2017-09-12 |
++------------+
+1 row in set (0.00 sec)
+
+
+MariaDB [P]> delimiter //
+MariaDB [P]> 
+	create procedure calculatefine (in roll_no int, in nameofbook char(10))
+	begin
+	declare currentdate date;
+	declare noofdays int;
+	declare flag int;
+	declare fineamt int;
+	declare doi date;
+	set flag=0;
+set currentdate=curdate();
+select dateofissue into doi from borrower where borrower.rollno=roll_no and borrower.nameofbook=nameofbook; 
+select datediff(currentdate, doi) into noofdays;
+select noofdays;
+if noofdays>=15 and noofdays<=30 then set fineamt=(5*noofdays);
+set flag=1;
+else if noofdays>30 then set fineamt=(10*noofdays);
+	set flag=2;
+end if;
+end if;
+if flag=1 then insert into fine values (roll_no,currentdate, fineamt);
+	else if flag=2 then insert into fine values (roll_no,currentdate, fineamt);
+end if;
+end if;
+	
+update borrower set borrower.status='r' where borrower.nameofbook=nameofbook;
+end 
+//
+Query OK, 0 rows affected (0.02 sec)
+
+MariaDB [P]> call calculatefine(102,'cn')//
++----------+
+| noofdays |
++----------+
+|       58 |
++----------+
+1 row in set (0.00 sec)
+
+Query OK, 1 row affected (0.03 sec)
+
+MariaDB [P]> select * from fine;
+    -> //
+Empty set (0.00 sec)
+
+MariaDB [P]> select * from fine //
+Empty set (0.00 sec)
+
+MariaDB [P]> select * from borrower //
++--------+------+-------------+------------+--------+
+| rollno | name | dateofissue | nameofbook | status |
++--------+------+-------------+------------+--------+
+|    101 | abc  | 2017-07-16  | dbms       | i      |
+|    102 | abc1 | 2017-07-16  | cn         | r      |
+|    103 | abc3 | 2017-07-18  | toc        | i      |
+|    104 | abc4 | 2017-07-20  | ds         | i      |
+|    105 | abc5 | 2017-07-23  | daa        | i      |
++--------+------+-------------+------------+--------+
+5 rows in set (0.00 sec)
+
+MariaDB [P]> call calculatefine (103,'toc');
+    -> //
++----------+
+| noofdays |
++----------+
+|       56 |
++----------+
+1 row in set (0.00 sec)
+
+Query OK, 1 row affected (0.01 sec)
+
+MariaDB [P]> select * from fine //
+Empty set (0.00 sec)
+
+MariaDB [P]> select * from borrower //
++--------+------+-------------+------------+--------+
+| rollno | name | dateofissue | nameofbook | status |
++--------+------+-------------+------------+--------+
+|    101 | abc  | 2017-07-16  | dbms       | i      |
+|    102 | abc1 | 2017-07-16  | cn         | r      |
+|    103 | abc3 | 2017-07-18  | toc        | r      |
+|    104 | abc4 | 2017-07-20  | ds         | i      |
+|    105 | abc5 | 2017-07-23  | daa        | i      |
++--------+------+-------------+------------+--------+
+5 rows in set (0.00 sec)
+
