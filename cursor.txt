@@ -1,0 +1,94 @@
+ASSIGNMENT 6
+Cursors: (All types: Implicit, Explicit, Cursor FOR Loop, Parameterized Cursor) Write a PL/SQL block of code using parameterized Cursor, that will merge the data available in the newly created table N_RollCall with the data available in the table O_RollCall. If the data in the first table already exist in the second table then that data should be skipped.
+Frame the separate problem statement for writing PL/SQL block to implement all types of Cursors inline with above statement. The problem statement should clearly state the requirements.
+
+
+MariaDB [P]> create table stud_marks (name char(50), total_marks int, roll int );
+Query OK, 0 rows affected (0.02 sec)
+
+MariaDB [P]> insert stud_marks values ('P', 900, 1);
+Query OK, 1 row affected (0.02 sec)
+
+MariaDB [P]> insert stud_marks values ('R', 1400, 2), ('S', 1000,3 ), ('T', 850, 4), ('Q', 750, 5);
+Query OK, 4 rows affected (0.02 sec)
+Records: 4  Duplicates: 0  Warnings: 0
+
+MariaDB [P]> create table result (roll int, name char(50), class char(20) );
+Query OK, 0 rows affected (0.03 sec)de
+
+MariaDB [P]> delimiter //
+MariaDB [P]> 
+CREATE PROCEDURE grade2()
+     BEGIN
+     DECLARE rolln INT;
+    DECLARE stu_name CHAR(50);
+    DECLARE marks INT;
+     DECLARE done INT DEFAULT FALSE;
+     DECLARE cur1 CURSOR FOR SELECT roll,name,total_marks FROM
+    stud_marks;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+     OPEN cur1;
+    read_loop: LOOP
+    FETCH cur1 INTO rolln,stu_name,marks;
+    IF done THEN
+    LEAVE read_loop;
+    END IF;
+     IF (marks >= 990 AND marks <= 1500) THEN
+     INSERT INTO result values(rolln, stu_name, 'DISTINCTION');
+     ELSEIF (marks >= 900 AND marks <= 989) THEN
+     INSERT INTO result values(rolln,stu_name,'FIRST CLASS');
+     ELSEIF (marks >=825 AND marks <=899) THEN
+     INSERT INTO result values(rolln,stu_name,'SECOND CLASS');
+    ELSE
+    INSERT INTO result values(rolln,stu_name,'FAIL');
+    END IF;
+     END LOOP;
+     CLOSE cur1;
+     END
+     //
+Query OK, 0 rows affected, 3 warnings (0.03 sec)
+
+MariaDB [P]> select * from stud_marks //
++------+-------------+------+
+| name | total_marks | roll |
++------+-------------+------+
+| P    |         900 |    1 |
+| R    |        1400 |    2 |
+| S    |        1000 |    3 |
+| T    |         850 |    4 |
+| Q    |         750 |    5 |
++------+-------------+------+
+5 rows in set (0.00 sec)
+
+MariaDB [P]> select * from result //
+Empty set (0.00 sec)
+
+MariaDB [P]> call grade //
+Query OK, 0 rows affected, 1 warning (0.07 sec)
+
+MariaDB [P]> select * from result //
++------+------+--------------+
+| roll | name | class        |
++------+------+--------------+
+|    1 | P    | FIRST CLASS  |
+|    2 | R    | DISTINCTION  |
+|    3 | S    | DISTINCTION  |
+|    4 | T    | SECOND CLASS |
+|    5 | Q    | FAIL         |
++------+------+--------------+
+5 rows in set (0.00 sec)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
