@@ -1,4 +1,4 @@
-ASSIGNMENT NO 10: 
+ASSIGNMENT NO 9: 
 implement the following MongoDb Query
     1. Create a collection named books.
     2. Insert 5 records with field TITLE,DESCRIPTION,BY,URL,TAGS AND LIKES
